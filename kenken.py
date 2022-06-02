@@ -456,3 +456,249 @@ class Kenken(csp.CSP):
         print("\nNeighbors:")
         for var in self.variables:
             print("neighbors[", var, "] =", self.neighbors[var])
+            
+###############################################################################################################
+############################################### BENCHMARK #####################################################
+###############################################################################################################
+
+
+
+def benchmark(kenken, algorithm):
+        """
+        Used in order to benchmark the given algorithm in terms of
+          * The number of nodes it visits
+          * The number of constraint checks it performs
+          * The number of assignments it performs
+          * The completion time
+        """
+        kenken.checks = kenken.nassigns = 0
+
+        dt = time()
+
+        assignment = algorithm(kenken)
+
+        dt = time() - dt
+
+        return assignment, (kenken.checks, kenken.nassigns, dt)
+
+bt         = lambda ken: csp.backtracking_search(ken)
+fc         = lambda ken: csp.backtracking_search(ken, inference=csp.forward_checking)
+mac        = lambda ken: csp.backtracking_search(ken, inference=csp.mac)
+
+algorithms = {
+        "BT": bt,
+        "FC": fc,
+        "MAC": mac,
+    }
+
+def gather(iterations, out):
+    """
+    Benchmark each one of the following algorithms for various kenken puzzles
+
+      * For every one of the following algorithms
+       * For every possible size of a kenken board
+         * Create 'iterations' random kenken puzzles of the current size
+           and evaluate the algorithm on each one of them in order to get
+           statistically sound data. Then calculate the average evaluation
+           of the algorithm for the current size.
+
+      * Save the results into a csv file
+    """
+    
+    with open(out, "w+") as file:
+
+        out = writer(file)
+
+        out.writerow(["Algorithm", "Size", "Constraint checks", "Assignments", "Completion time"])
+        
+        
+        for rand_size in range(2,7):
+            size, cliques = generate(rand_size)
+            for name, algorithm in algorithms.items():
+                print("generating")
+                checks, assignments, dt = (0, 0, 0)
+                for iteration in range(1, iterations + 1):
+                    assignment, data = benchmark(Kenken(size, cliques), algorithm)
+
+                    print("algorithm =",  name, "size =", size, "iteration =", iteration, "result =", "Success" if assignment else "Failure", file=stderr)
+
+                    checks      += data[0] / iterations
+                    assignments += data[1] / iterations
+                    dt          += data[2] / iterations
+                    
+                out.writerow([name, size,checks, assignments, dt])
+    
+    parse_csv_file()
+    out='accumlative_results.csv'
+    with open(out, "w+") as file:
+
+        out = writer(file)
+
+        out.writerow(["Algorithm","Constraint checks", "Assignments", "Completion time"])
+        
+        out.writerow(['BT',BT_Constrains_Check_total,BT_Assignments_total,BT_time_total])
+        out.writerow(['FC',FC_Constrains_Check_total,FC_Assignments_total,FC_time_total])
+        out.writerow(['AC',AC_Constrains_Check_total,AC_Assignments_total,AC_time_total])
+
+class inputdialogdemo(QWidget):
+
+   def __init__(self, parent = None):
+      super(inputdialogdemo, self).__init__(parent)
+	
+      self.title = "Kenken"
+      self.top = 200
+      self.left = 200
+      self.width = 1500
+      self.height = 1000
+      self.paint_flag = 0
+      self.sol_flag = 0
+
+      self.btn = QPushButton("Enter the game size", self,height=100,width=100)
+      self.btn.move(650,50)
+      self.btn.clicked.connect(self.getint)		
+
+      self.btn2 = QPushButton("Solve Game", self,height=100,width=100)
+      self.btn2.move(650,150)
+      self.btn2.clicked.connect(self.s)	
+
+      self.btn2 = QPushButton("Generate", self,height=100,width=100)
+      self.btn2.move(650,180)
+      self.btn2.clicked.connect(generate_csv_file)	
+
+      self.label = QLabel('Choose the algorithm', self,height=100,width=100)
+      self.label.move(500,100)
+
+      self.dropDown = QComboBox(self)
+      self.dropDown.setGeometry(QRect(650,100, 300, 25))
+      self.dropDown.setEditable(True)
+      self.dropDown.lineEdit().setAlignment(Qt.AlignCenter)
+      self.dropDown.addItems(["Choose the algorithm", "Backtracking", "Backtracking with forward checking", "Backtracking with arc"])
+
+      self.dropDown.currentTextChanged.connect(self.current_text_changed)
+
+      self.setWindowTitle("Kenken")
+      self.InitWindow()
+
+
+   def InitWindow(self):
+       self.setGeometry(self.left, self.top, self.width, self.height)
+       self.show()
+
+   def current_text_changed(self, s):
+       print("Current text: ", s)
+       global alg
+       alg = s
+
+   def paintEvent(self, event):
+       if self.paint_flag:
+            colors = [QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255), QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255), QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255), QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255), 
+                    QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),QColor(qrand()%255, qrand()%255, qrand()%255, qrand()%255),
+                    ]
+            
+            painter = QPainter(self)
+            w = 150
+            h = 150
+            c = 0
+            recs = []
+            for p in problem:
+                for rec in p[0]:
+                    rect = QRect(300 + w*rec[0],100 + h*rec[1], w, h)
+                    recs.append(rect)
+                    painter.setBrush(colors[c])
+                    painter.drawRect(rect)
+                    if rec == p[0][0]:
+                        if p[-2] == ".":
+                            painter.drawText(rect, Qt.AlignLeft, str(p[-1]))
+                        else:
+                            painter.drawText(rect, Qt.AlignLeft, str(p[-1])+str(p[-2])) 
+                c += 1
+
+            if self.sol_flag:
+                ind = 0
+                for key, value in res.items():
+                    for v in value:
+                        painter.drawText(recs[ind], Qt.AlignCenter, str(v))
+                        ind += 1
+
+            
+   def getint(self):
+       global x
+       x,ok = QInputDialog.getInt(self,"Game Size","enter a number")
+       global kenn
+       kenn = do(x)
+       self.paint_flag = 1
+       self.update()
+
+   def s(self):
+       self.sol_flag = 1
+       solve(kenn)
+       self.update()
+
+
+def do(num1):
+    size, cliques = generate(num1)
+    global problem
+    problem = []
+    problem = cliques
+    print("#########################")
+    print(problem)
+    print("#######################")
+    ken = Kenken(size, cliques)
+
+    return ken
+
+def solve(kenn):
+    global res
+    res = {}
+    if (alg == "Backtracking"):
+        assignment = csp.backtracking_search(kenn)
+        res = assignment
+    elif (alg == "Backtracking with forward checking"):
+        assignment = csp.backtracking_search(kenn, inference=csp.forward_checking)
+        res = assignment
+    elif (alg == "Backtracking with arc"):
+        assignment = csp.backtracking_search(kenn, inference=csp.mac)
+        res = assignment
+    
+    print("#########################")
+    print(res)
+    print("#######################")
+    kenn.display(assignment)
+
+def generate_csv_file():
+    x = threading.Thread(target=gather, args=(100,"kenken.csv"))
+    x.start()
+
+
+def parse_csv_file():
+    global BT_Constrains_Check_total,FC_Constrains_Check_total,AC_Constrains_Check_total
+    global BT_Assignments_total,FC_Assignments_total,AC_Assignments_total
+    global BT_time_total,FC_time_total,AC_time_total
+    BT_Constrains_Check_total,FC_Constrains_Check_total,AC_Constrains_Check_total=(0,0,0)
+    BT_Assignments_total,FC_Assignments_total,AC_Assignments_total=(0,0,0)
+    BT_time_total,FC_time_total,AC_time_total=(0,0,0)
+    with open('kenken.csv', 'r') as file:
+         reader = csv.reader(file)
+         for row in reader:
+            if len(row) is not 0: 
+                if row[0]=='BT':
+                   BT_Constrains_Check_total += (float)(row[2])
+                   BT_Assignments_total += (float)(row[3])
+                   BT_time_total += (float)(row[4])
+                if row[0]=='FC':
+                   FC_Constrains_Check_total += (float)(row[2])
+                   FC_Assignments_total += (float)(row[3])
+                   FC_time_total += (float)(row[4])
+                if row[0]=='MAC':
+                   AC_Constrains_Check_total += (float)(row[2])
+                   AC_Assignments_total += (float)(row[3])
+                   AC_time_total += (float)(row[4])
+
+
+if __name__ == "__main__":
+
+    app = QApplication(sys.argv)
+    ex = inputdialogdemo()
+    ex.show()
+
+    sys.exit(app.exec_())
